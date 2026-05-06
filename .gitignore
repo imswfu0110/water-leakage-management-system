@@ -1,0 +1,61 @@
+# =========================
+# macOS
+# =========================
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# =========================
+# IDE
+# =========================
+.idea/
+.vscode/
+*.iml
+
+# Cursor local config
+.cursor/
+.cursorignore
+
+# =========================
+# Java / Maven
+# =========================
+target/
+*.class
+*.jar
+*.war
+*.ear
+.mvn/wrapper/maven-wrapper.jar
+
+# Logs
+logs/
+*.log
+
+# =========================
+# Node / Frontend
+# =========================
+node_modules/
+dist/
+dist-ssr/
+.vite/
+.cache/
+coverage/
+
+# Environment files
+.env
+.env.*
+!.env.example
+
+# =========================
+# Database / Uploads
+# =========================
+uploads/
+files/
+*.db
+*.sqlite
+
+# =========================
+# Temporary files
+# =========================
+tmp/
+temp/
+*.tmp
