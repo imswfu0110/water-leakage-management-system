@@ -3,9 +3,13 @@ package com.donghai.leakage.common;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
+
+    private static final Logger log = LoggerFactory.getLogger(GlobalExceptionHandler.class);
 
     // 业务异常
     @ExceptionHandler(BusinessException.class)
@@ -28,7 +32,7 @@ public class GlobalExceptionHandler {
     // 其他异常
     @ExceptionHandler(Exception.class)
     public Result<Void> handleException(Exception e) {
-        e.printStackTrace();
-        return Result.error(e.getMessage());
+        log.error("Unhandled server error", e);
+        return Result.error("服务器内部错误");
     }
 }

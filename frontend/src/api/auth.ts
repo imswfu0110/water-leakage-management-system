@@ -1,21 +1,6 @@
 import request from '@/utils/request'
 
-export interface LoginParams {
-  username: string
-  password: string
-}
-
-export interface LoginResult {
-  token: string
-  userId: number
-  username: string
-  nickname: string
-}
-
-export function loginApi(data: LoginParams) {
-  return request.post<LoginResult, LoginResult>('/auth/login', data)
-}
-
-export function pingAuthApi() {
-  return request.get<string>('/auth/ping')
-}
+export const captchaApi = () => request.get('/auth/captcha') as Promise<{ captchaId: string; image: string }>
+export const loginApi = (data: { username: string; password: string; captchaId: string; captchaCode: string }) => request.post('/auth/login', data) as Promise<any>
+export const userInfoApi = () => request.get('/auth/userinfo') as Promise<any>
+export const logoutApi = () => request.post('/auth/logout')

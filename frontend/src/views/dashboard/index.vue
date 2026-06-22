@@ -1,131 +1,24 @@
 <template>
   <div class="dashboard-page">
-    <div class="welcome-card">
-      <div>
-        <h2>供水管网漏损控制管理系统</h2>
-        <p>欢迎回来，{{ nickname }}。当前系统用于支撑管网漏损监测、工单处置、数据分析与系统管理。</p>
-      </div>
-    </div>
-
-    <div class="stat-grid">
-      <el-card class="stat-card">
-        <div class="stat-title">管网监测点</div>
-        <div class="stat-value">0</div>
-        <div class="stat-desc">待接入实时监测数据</div>
-      </el-card>
-
-      <el-card class="stat-card">
-        <div class="stat-title">漏损预警</div>
-        <div class="stat-value">0</div>
-        <div class="stat-desc">待开发预警规则</div>
-      </el-card>
-
-      <el-card class="stat-card">
-        <div class="stat-title">待处理工单</div>
-        <div class="stat-value">0</div>
-        <div class="stat-desc">待接入工单模块</div>
-      </el-card>
-
-      <el-card class="stat-card">
-        <div class="stat-title">本月漏损率</div>
-        <div class="stat-value">--</div>
-        <div class="stat-desc">待接入统计数据</div>
-      </el-card>
-    </div>
-
-    <el-card class="section-card">
-      <template #header>
-        <div class="card-header">
-          <span>系统建设进度</span>
-        </div>
-      </template>
-
-      <el-timeline>
-        <el-timeline-item timestamp="已完成" type="success">
-          后端基础规范、数据库基础表、登录认证接口
-        </el-timeline-item>
-
-        <el-timeline-item timestamp="当前步骤" type="primary">
-          系统 Layout 与首页开发
-        </el-timeline-item>
-
-        <el-timeline-item timestamp="下一步">
-          菜单管理、用户管理、角色权限模块
-        </el-timeline-item>
-      </el-timeline>
-    </el-card>
+    <section class="device-card">
+      <div class="section-title"><el-icon><Monitor /></el-icon>远传设备状态<span class="realtime">实时</span></div>
+      <div class="summary"><div><span>设备总数</span><b>{{ overview.deviceTotal }}</b></div><i></i><div><span>当日上线</span><b>{{ overview.onlineDevice }}</b></div><i></i><div><span>漏损报警</span><b class="alarm">{{ overview.alarmCount }}</b></div></div>
+      <div class="status-body"><div class="ring" :style="{ '--rate': overview.onlineRate * 3.6 + 'deg' }"><div><b>{{ overview.onlineRate }}%</b><span>上线率</span></div></div><div class="legend"><p><span class="dot green"></span>在线<b class="green-text">{{ overview.onlineDevice }}</b></p><p><span class="dot red"></span>离线<b class="red-text">{{ overview.offlineDevice }}</b></p><p><span class="dot blue"></span>在线率<b>{{ overview.onlineRate }}%</b></p></div></div>
+    </section>
+    <section class="chart-grid"><div class="chart-card"><div class="section-title">近 7 日漏损趋势</div><div ref="trendEl" class="chart"></div></div><div class="chart-card"><div class="section-title">分区漏损排行</div><div ref="rankEl" class="chart"></div></div></section>
   </div>
 </template>
 
 <script setup lang="ts">
-const userInfo = localStorage.getItem('userInfo')
-const nickname = userInfo ? JSON.parse(userInfo).nickname : '管理员'
+import { nextTick, onBeforeUnmount, onMounted, reactive, ref } from 'vue'
+import { Monitor } from '@element-plus/icons-vue'
+import * as echarts from 'echarts'
+import { getOverview,getLeakageTrend,getAreaRanking } from '@/api/dashboard'
+const overview=reactive({deviceTotal:0,onlineDevice:0,offlineDevice:0,onlineRate:0,alarmCount:0}),trendEl=ref(),rankEl=ref();let trend:any,rank:any
+const load=async()=>{const[o,t,r]=await Promise.all([getOverview(),getLeakageTrend(),getAreaRanking()]);Object.assign(overview,o);await nextTick();trend=echarts.init(trendEl.value);rank=echarts.init(rankEl.value);trend.setOption({grid:{left:45,right:20,top:28,bottom:32},tooltip:{trigger:'axis'},xAxis:{type:'category',data:t.map(x=>x.name),axisLine:{lineStyle:{color:'#d9e4ee'}}},yAxis:{type:'value',name:'漏损率 %',splitLine:{lineStyle:{color:'#edf2f6'}}},series:[{type:'line',smooth:true,data:t.map(x=>x.value),symbolSize:8,lineStyle:{width:3,color:'#168fe8'},itemStyle:{color:'#ffae13'},areaStyle:{color:new echarts.graphic.LinearGradient(0,0,0,1,[{offset:0,color:'rgba(22,143,232,.28)'},{offset:1,color:'rgba(22,143,232,.02)'}])}}]});rank.setOption({grid:{left:80,right:30,top:15,bottom:25},tooltip:{trigger:'axis'},xAxis:{type:'value',splitLine:{lineStyle:{color:'#edf2f6'}}},yAxis:{type:'category',data:r.map(x=>x.name).reverse(),axisLine:{show:false},axisTick:{show:false}},series:[{type:'bar',data:r.map(x=>x.value).reverse(),barWidth:14,itemStyle:{borderRadius:8,color:new echarts.graphic.LinearGradient(0,0,1,0,[{offset:0,color:'#32b6f0'},{offset:1,color:'#087fd6'}])},label:{show:true,position:'right',formatter:'{c}%'}}]})}
+const resize=()=>{trend?.resize();rank?.resize()};onMounted(()=>{load();window.addEventListener('resize',resize)});onBeforeUnmount(()=>{window.removeEventListener('resize',resize);trend?.dispose();rank?.dispose()})
 </script>
 
 <style scoped>
-.dashboard-page {
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
-}
-
-.welcome-card {
-  padding: 24px;
-  background: linear-gradient(135deg, #1f6fb2, #0f2a44);
-  border-radius: 12px;
-  color: #ffffff;
-}
-
-.welcome-card h2 {
-  margin: 0 0 10px;
-  font-size: 24px;
-}
-
-.welcome-card p {
-  margin: 0;
-  font-size: 14px;
-  opacity: 0.9;
-}
-
-.stat-grid {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 16px;
-}
-
-.stat-card {
-  border-radius: 10px;
-}
-
-.stat-title {
-  font-size: 14px;
-  color: #606266;
-}
-
-.stat-value {
-  margin-top: 12px;
-  font-size: 30px;
-  font-weight: 700;
-  color: #1f2d3d;
-}
-
-.stat-desc {
-  margin-top: 8px;
-  font-size: 12px;
-  color: #909399;
-}
-
-.section-card {
-  border-radius: 10px;
-}
-
-.card-header {
-  font-weight: 600;
-}
-
-@media (max-width: 1200px) {
-  .stat-grid {
-    grid-template-columns: repeat(2, 1fr);
-  }
-}
+.dashboard-page{display:flex;flex-direction:column;gap:16px}.device-card,.chart-card{background:#fff;border-radius:14px;box-shadow:0 4px 18px rgba(27,78,119,.07)}.device-card{padding:17px}.section-title{height:30px;display:flex;align-items:center;gap:7px;font-size:16px;font-weight:700;color:#244562}.section-title .el-icon{color:#168ee7}.realtime{margin-left:auto;padding:3px 9px;border:1px solid #a8d8fa;border-radius:13px;color:#2394e9;font-size:12px;font-weight:400}.summary{height:86px;margin-top:7px;border-radius:13px;background:#f6f9fd;display:flex;align-items:center;justify-content:space-around}.summary div{text-align:center;min-width:180px}.summary span{display:block;color:#8495a5;font-size:13px}.summary b{display:block;margin-top:6px;font-size:34px;color:#244866}.summary b.alarm{color:#ff9f0a}.summary i{width:1px;height:42px;background:#dbe5ee}.status-body{height:190px;display:flex;align-items:center;justify-content:center;gap:180px}.ring{width:118px;height:118px;border-radius:50%;display:grid;place-items:center;background:conic-gradient(#ffa70b var(--rate),#edf2f6 0);position:relative}.ring:before{content:"";position:absolute;inset:10px;border-radius:50%;background:#fff}.ring div{position:relative;text-align:center}.ring b{font-size:20px}.ring span{display:block;font-size:12px;color:#8b9aa8;margin-top:3px}.legend{width:300px}.legend p{display:flex;align-items:center;color:#81909e;margin:18px 0}.legend b{margin-left:auto;color:#23435e}.dot{width:9px;height:9px;border-radius:50%;margin-right:10px}.green{background:#50d31a}.red{background:#ff2438}.blue{background:#299ce8}.green-text{color:#39c900!important}.red-text{color:#ff2033!important}.chart-grid{display:grid;grid-template-columns:1.35fr 1fr;gap:16px}.chart-card{padding:17px}.chart{height:260px}@media(max-width:900px){.chart-grid{grid-template-columns:1fr}.status-body{gap:60px}.summary div{min-width:0}}
 </style>

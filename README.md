@@ -84,3 +84,21 @@ Stage 2: Business Modules
 * Scheduled task management
 * Leakage data dashboard
 * Alarm and event management
+
+## 6. Running Stage 1
+
+1. Apply `sql/stage1.sql` to the `water_leakage_system` database.
+2. Export backend environment variables (do not commit real credentials):
+
+```bash
+export DB_URL=jdbc:postgresql://192.168.4.20:5432/water_leakage_system
+export DB_USERNAME=postgres
+export DB_PASSWORD=your_password
+export TOKEN_SECRET=replace_with_a_long_random_secret
+```
+
+3. Start the backend with `cd backend && ./mvnw spring-boot:run`.
+4. Start the frontend with `cd frontend && npm install && npm run dev`.
+5. Visit `http://localhost:5173`; the initialized administrator account is `admin`.
+
+Stage 1 now includes dynamic captcha, BCrypt password migration, signed expiring tokens, endpoint permission checks, dynamic RBAC menus, dashboard charts, system configuration, and complete user/role/menu management pages.

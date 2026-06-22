@@ -16,7 +16,12 @@ request.interceptors.request.use(
     return config
   },
   (error) => {
-    return Promise.reject(error)
+    if (error.response?.status === 401) {
+      localStorage.removeItem('token')
+      localStorage.removeItem('userInfo')
+      if (location.pathname !== '/login') location.href = '/login'
+    }
+    return Promise.reject(new Error(error.response?.data?.message || error.message || '网络请求失败'))
   }
 )
 
@@ -25,6 +30,11 @@ request.interceptors.response.use(
     const res = response.data
 
     if (res.code !== 200) {
+      if (res.code === 401) {
+        localStorage.removeItem('token')
+        localStorage.removeItem('userInfo')
+        if (location.pathname !== '/login') location.href = '/login'
+      }
       return Promise.reject(new Error(res.message || '请求失败'))
     }
 
