@@ -4,14 +4,27 @@ server:
     context-path: /api
 
 spring:
+  config:
+    import: optional:file:.env[.properties]
+
   application:
     name: water-leakage-backend
 
   datasource:
     driver-class-name: org.postgresql.Driver
-    url: jdbc:postgresql://192.168.4.20:5432/water_leakage_system
-    username: postgres
-    password: wzk123
+    url: ${DB_URL:jdbc:postgresql://192.168.4.20:5432/water_leakage_system}
+    username: ${DB_USERNAME:postgres}
+    password: ${DB_PASSWORD:}
+
+  servlet:
+    multipart:
+      max-file-size: 2MB
+      max-request-size: 2MB
+
+app:
+  token-secret: ${TOKEN_SECRET:water-leakage-local-development-secret-change-me}
+  token-expire-hours: 12
+  upload-dir: ${UPLOAD_DIR:uploads}
 
 mybatis-plus:
   configuration:

@@ -27,7 +27,7 @@ const routes = [
       {
         path: 'system/user',
         name: 'SystemUser',
-        component: () => import('@/views/dashboard/index.vue'),
+        component: () => import('@/views/system/user/index.vue'),
         meta: {
           title: '用户管理'
         }
@@ -35,7 +35,7 @@ const routes = [
       {
         path: 'system/role',
         name: 'SystemRole',
-        component: () => import('@/views/dashboard/index.vue'),
+        component: () => import('@/views/system/role/index.vue'),
         meta: {
           title: '角色管理'
         }
@@ -43,7 +43,7 @@ const routes = [
       {
         path: 'system/menu',
         name: 'SystemMenu',
-        component: () => import('@/views/dashboard/index.vue'),
+        component: () => import('@/views/system/menu/index.vue'),
         meta: {
           title: '菜单管理'
         }
@@ -51,7 +51,7 @@ const routes = [
       {
         path: 'system/config',
         name: 'SystemConfig',
-        component: () => import('@/views/dashboard/index.vue'),
+        component: () => import('@/views/system/config/index.vue'),
         meta: {
           title: '系统配置'
         }
@@ -65,7 +65,7 @@ const router = createRouter({
   routes
 })
 
-router.beforeEach((to, from, next) => {
+router.beforeEach((to, _from, next) => {
   const token = localStorage.getItem('token')
 
   if (to.path === '/login') {
@@ -77,8 +77,16 @@ router.beforeEach((to, from, next) => {
     next('/login')
     return
   }
-
-  next()
+  import('@/store/app').then(async ({ appStore }) => {
+    try {
+      if (!appStore.ready) await appStore.load()
+      if (!appStore.hasPath(to.path)) return next('/dashboard')
+      next()
+    } catch {
+      localStorage.removeItem('token')
+      next('/login')
+    }
+  })
 })
 
 export default router
