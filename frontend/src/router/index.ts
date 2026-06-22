@@ -1,60 +1,84 @@
-import { createRouter, createWebHistory } from 'vue-router';
+import { createRouter, createWebHistory } from 'vue-router'
+
+const Layout = () => import('@/layout/index.vue')
 
 const routes = [
   {
-    path: '/',
-    redirect: '/dashboard',
-  },
-  {
     path: '/login',
-    component: () => import('../views/login/index.vue'),
+    name: 'Login',
+    component: () => import('@/views/login/index.vue'),
+    meta: {
+      title: '登录'
+    }
   },
   {
     path: '/',
-    component: () => import('../layout/BasicLayout.vue'),
+    component: Layout,
+    redirect: '/dashboard',
     children: [
       {
         path: 'dashboard',
-        component: () => import('../views/dashboard/index.vue'),
+        name: 'Dashboard',
+        component: () => import('@/views/dashboard/index.vue'),
         meta: {
-          title: '系统首页',
-        },
+          title: '首页'
+        }
       },
       {
         path: 'system/user',
-        component: () => import('../views/system/user/index.vue'),
+        name: 'SystemUser',
+        component: () => import('@/views/dashboard/index.vue'),
         meta: {
-          title: '用户管理',
-        },
+          title: '用户管理'
+        }
       },
       {
         path: 'system/role',
-        component: () => import('../views/system/role/index.vue'),
+        name: 'SystemRole',
+        component: () => import('@/views/dashboard/index.vue'),
         meta: {
-          title: '角色管理',
-        },
+          title: '角色管理'
+        }
       },
       {
         path: 'system/menu',
-        component: () => import('../views/system/menu/index.vue'),
+        name: 'SystemMenu',
+        component: () => import('@/views/dashboard/index.vue'),
         meta: {
-          title: '菜单管理',
-        },
+          title: '菜单管理'
+        }
       },
       {
         path: 'system/config',
-        component: () => import('../views/system/config/index.vue'),
+        name: 'SystemConfig',
+        component: () => import('@/views/dashboard/index.vue'),
         meta: {
-          title: '系统配置',
-        },
-      },
-    ],
-  },
-];
+          title: '系统配置'
+        }
+      }
+    ]
+  }
+]
 
 const router = createRouter({
   history: createWebHistory(),
-  routes,
-});
+  routes
+})
 
-export default router;
+router.beforeEach((to, from, next) => {
+  const token = localStorage.getItem('token')
+
+  if (to.path === '/login') {
+    next()
+    return
+  }
+
+  if (!token) {
+    next('/login')
+    return
+  }
+
+  next()
+})
+
+export default router
